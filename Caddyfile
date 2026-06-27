@@ -1,0 +1,10 @@
+# === 开发环境 ===
+localhost:8443 {
+    tls /certs/localhost.crt /certs/localhost.key
+    reverse_proxy app:3000
+}
+
+# === 生产环境 ===
+# yourdomain.com {
+#     reverse_proxy app:3000
+# }
