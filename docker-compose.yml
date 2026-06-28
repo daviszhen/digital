@@ -25,13 +25,19 @@ services:
     restart: unless-stopped
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SERVER_URL: https://localhost:8443
     container_name: dstore-app
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/payload
       PAYLOAD_SECRET: payload-docker-secret-change-me
+      SERVER_URL: https://localhost:8443
     env_file:
       - .env.docker
+    volumes:
+      - media_uploads:/app/public/media
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,3 +57,4 @@ services:
 
 volumes:
   pgdata:
+  media_uploads:

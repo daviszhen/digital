@@ -1,6 +1,6 @@
 # DigitalStore — Digital Products Marketplace
 
-A production-ready platform for selling digital assets (e-books, design files, software, templates, etc.). Built on [Payload CMS v3](https://payloadcms.com) + [Next.js 16](https://nextjs.org) with Stripe payments, instant download delivery, and Docker deployment.
+A production-ready platform for selling digital assets (e-books, design files, software, templates, etc.) with Stripe payments, instant download delivery, and Docker deployment.
 
 ## Features
 
@@ -23,6 +23,16 @@ A production-ready platform for selling digital assets (e-books, design files, s
 | App | 3000 (internal) | Payload CMS + Next.js storefront |
 | PostgreSQL | 5432 | Database |
 | Redis | 6380 | Optional cache / event bus |
+
+## Tech Stack
+
+- [Payload CMS v3](https://payloadcms.com) — Headless CMS
+- [Next.js 16](https://nextjs.org) — Frontend framework
+- [PostgreSQL](https://postgresql.org) — Database
+- [Stripe](https://stripe.com) — Payments
+- [Tailwind CSS](https://tailwindcss.com) — Styling
+- [Docker](https://docker.com) — Containerization
+- [Caddy](https://caddyserver.com) — HTTPS reverse proxy
 
 ## Quick Start (Docker)
 

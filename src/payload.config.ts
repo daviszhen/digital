@@ -21,11 +21,14 @@ import { Media } from '@/collections/Media'
 import { Pages } from '@/collections/Pages'
 import { Users } from '@/collections/Users'
 import { DigitalAssets } from '@/collections/DigitalAssets'
+import { ApiKeys } from '@/collections/ApiKeys'
+import { Reviews } from '@/collections/Reviews'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
 import { plugins } from './plugins'
 import { downloadEndpoint } from '@/endpoints/download'
 import { createPaymentEndpoint } from '@/endpoints/create-payment'
+import { agentEndpoint } from '@/endpoints/agent'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -42,7 +45,7 @@ export default buildConfig({
     },
     user: Users.slug,
   },
-  collections: [Users, Pages, Categories, Media, DigitalAssets],
+  collections: [Users, Pages, Categories, Media, DigitalAssets, ApiKeys, Reviews],
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
@@ -96,7 +99,7 @@ export default buildConfig({
         },
       })
     : undefined,
-  endpoints: [downloadEndpoint, createPaymentEndpoint],
+  endpoints: [downloadEndpoint, createPaymentEndpoint, agentEndpoint],
   globals: [Header, Footer],
   plugins,
   secret: process.env.PAYLOAD_SECRET || '',

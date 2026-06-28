@@ -49,31 +49,33 @@ export const Gallery: React.FC<Props> = ({ gallery }) => {
 
   return (
     <div>
-      <div className="relative w-full overflow-hidden mb-8">
+      <div className="relative aspect-square w-full overflow-hidden mb-3 rounded-lg bg-muted/20">
         <Media
           resource={gallery[current].image}
-          className="w-full"
-          imgClassName="w-full rounded-lg"
+          fill
+          imgClassName="w-full h-full object-cover rounded-lg"
         />
       </div>
 
-      <Carousel setApi={setApi} className="w-full" opts={{ align: 'start', loop: false }}>
-        <CarouselContent>
-          {gallery.map((item, i) => {
-            if (typeof item.image !== 'object') return null
+      {gallery.length > 1 && (
+        <Carousel setApi={setApi} className="w-full" opts={{ align: 'start', loop: false }}>
+          <CarouselContent>
+            {gallery.map((item, i) => {
+              if (typeof item.image !== 'object') return null
 
-            return (
-              <CarouselItem
-                className="basis-1/5"
-                key={`${item.image.id}-${i}`}
-                onClick={() => setCurrent(i)}
-              >
-                <GridTileImage active={i === current} media={item.image} />
-              </CarouselItem>
-            )
-          })}
-        </CarouselContent>
-      </Carousel>
+              return (
+                <CarouselItem
+                  className="basis-1/5"
+                  key={`${item.image.id}-${i}`}
+                  onClick={() => setCurrent(i)}
+                >
+                  <GridTileImage active={i === current} media={item.image} />
+                </CarouselItem>
+              )
+            })}
+          </CarouselContent>
+        </Carousel>
+      )}
     </div>
   )
 }

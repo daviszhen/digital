@@ -1,84 +1,95 @@
-import { Banner } from '@payloadcms/ui'
-import React from 'react'
+'use client'
 
-import { SeedButton } from './SeedButton'
-import './index.scss'
+import { useEffect, useState } from 'react'
 
-const baseClass = 'before-dashboard'
+type Stats = {
+  products: number
+  orders: number
+  downloads: number
+  revenue: number
+  reviews: number
+  customers: number
+}
 
 export const BeforeDashboard: React.FC = () => {
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/products?depth=0&limit=1', { credentials: 'include' }),
+      fetch('/api/orders?depth=0&limit=1', { credentials: 'include' }),
+      fetch('/api/digital-assets?depth=0&limit=100', { credentials: 'include' }),
+      fetch('/api/users?depth=0&limit=1', { credentials: 'include' }),
+      fetch('/api/reviews?depth=0&limit=1', { credentials: 'include' }),
+    ])
+      .then((resps) => Promise.all(resps.map((r) => r.json())))
+      .then(([products, orders, assets, users, reviews]) => {
+        // Calculate total downloads from assets
+        const totalDownloads = (assets.docs || []).reduce(
+          (sum: number, a: any) => sum + (a.downloadCount || 0),
+          0,
+        )
+        // Estimate revenue from orders
+        const revenue = (orders.docs || []).reduce(
+          (sum: number, o: any) => sum + (o.total || o.amount || 0),
+          0,
+        )
+
+        setStats({
+          products: products?.totalDocs || 0,
+          orders: orders?.totalDocs || 0,
+          downloads: totalDownloads,
+          revenue,
+          reviews: reviews?.totalDocs || 0,
+          customers: users?.totalDocs || 0,
+        })
+      })
+      .catch(console.error)
+  }, [])
+
+  const cards = [
+    { label: 'Products', value: stats?.products ?? '-', color: 'blue' },
+    { label: 'Orders', value: stats?.orders ?? '-', color: 'green' },
+    { label: 'Downloads', value: stats?.downloads ?? '-', color: 'purple' },
+    { label: 'Revenue', value: stats?.revenue ? `$${(stats.revenue / 100).toFixed(0)}` : '-', color: 'orange' },
+    { label: 'Reviews', value: stats?.reviews ?? '-', color: 'pink' },
+    { label: 'Customers', value: stats?.customers ?? '-', color: 'teal' },
+  ]
+
+  const colorMap: Record<string, string> = {
+    blue: 'border-blue-200 bg-blue-50 text-blue-700',
+    green: 'border-green-200 bg-green-50 text-green-700',
+    purple: 'border-purple-200 bg-purple-50 text-purple-700',
+    orange: 'border-orange-200 bg-orange-50 text-orange-700',
+    pink: 'border-pink-200 bg-pink-50 text-pink-700',
+    teal: 'border-teal-200 bg-teal-50 text-teal-700',
+  }
+
   return (
-    <div className={baseClass}>
-      <Banner className={`${baseClass}__banner`} type="success">
-        <h4>Welcome to your dashboard!</h4>
-      </Banner>
-      Here&apos;s what to do next:
-      <ul className={`${baseClass}__instructions`}>
-        <li>
-          <SeedButton />
-          {' with a few products and pages to jump-start your new project, then '}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/">visit your website</a>
-          {' to see the results.'}
-        </li>
-        <li>
-          {'Head over to '}
-          <a
-            href="https://dashboard.stripe.com/test/apikeys"
-            rel="noopener noreferrer"
-            target="_blank"
+    <div style={{ marginBottom: '2rem' }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
+        Store Overview
+      </h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem' }}>
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            style={{
+              padding: '1.25rem',
+              borderRadius: '0.5rem',
+              border: '1px solid',
+            }}
+            className={colorMap[card.color]}
           >
-            Stripe to obtain your API Keys
-          </a>
-          {
-            '. Create a new account if needed, then copy them into your environment variables and restart your server. See the '
-          }
-          <a
-            href="https://github.com/payloadcms/payload/blob/3.x/templates/ecommerce/README.md#stripe"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            README
-          </a>
-          {' for more details.'}
-        </li>
-        <li>
-          {'Modify your '}
-          <a
-            href="https://payloadcms.com/docs/configuration/collections"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            collections
-          </a>
-          {' and add more '}
-          <a
-            href="https://payloadcms.com/docs/fields/overview"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            fields
-          </a>
-          {' as needed. If you are new to Payload, we also recommend you check out the '}
-          <a
-            href="https://payloadcms.com/docs/getting-started/what-is-payload"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Getting Started
-          </a>
-          {' docs.'}
-        </li>
-      </ul>
-      {'Pro Tip: This block is a '}
-      <a
-        href="https://payloadcms.com/docs/admin/components#base-component-overrides"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        custom component
-      </a>
-      , you can remove it at any time by updating your <strong>payload.config</strong>.
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.7, marginBottom: '0.5rem' }}>
+              {card.label}
+            </div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700 }}>
+              {card.value}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

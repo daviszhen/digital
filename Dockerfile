@@ -12,6 +12,8 @@ RUN pnpm install --frozen-lockfile --prod
 FROM base AS builder
 RUN pnpm install --frozen-lockfile
 COPY . .
+ARG NEXT_PUBLIC_SERVER_URL
+ENV NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
 RUN pnpm build
 
 FROM base AS runner
@@ -34,4 +36,4 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-CMD ["sh", "-c", "pnpm payload migrate || true && pnpm start"]
+CMD ["sh", "-c", "pnpm payload migrate:create 2>/dev/null || true && pnpm payload migrate || true && pnpm start"]

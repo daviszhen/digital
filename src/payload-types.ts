@@ -77,6 +77,8 @@ export interface Config {
     categories: Category;
     media: Media;
     'digital-assets': DigitalAsset;
+    'api-keys': ApiKey;
+    reviews: Review;
     forms: Form;
     'form-submissions': FormSubmission;
     addresses: Address;
@@ -111,6 +113,8 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'digital-assets': DigitalAssetsSelect<false> | DigitalAssetsSelect<true>;
+    'api-keys': ApiKeysSelect<false> | ApiKeysSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     addresses: AddressesSelect<false> | AddressesSelect<true>;
@@ -1045,6 +1049,34 @@ export interface DigitalAsset {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys".
+ */
+export interface ApiKey {
+  id: number;
+  name: string;
+  key: string;
+  permissions: 'read' | 'write' | 'admin';
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: number;
+  title: string;
+  content: string;
+  rating: number;
+  product: number | Product;
+  author: string;
+  isApproved?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
@@ -1103,6 +1135,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'digital-assets';
         value: number | DigitalAsset;
+      } | null)
+    | ({
+        relationTo: 'api-keys';
+        value: number | ApiKey;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: number | Review;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1428,6 +1468,32 @@ export interface DigitalAssetsSelect<T extends boolean = true> {
   downloadCount?: T;
   maxDownloads?: T;
   expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "api-keys_select".
+ */
+export interface ApiKeysSelect<T extends boolean = true> {
+  name?: T;
+  key?: T;
+  permissions?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  rating?: T;
+  product?: T;
+  author?: T;
+  isApproved?: T;
   updatedAt?: T;
   createdAt?: T;
 }

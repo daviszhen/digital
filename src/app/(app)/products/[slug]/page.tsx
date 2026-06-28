@@ -13,6 +13,7 @@ import { notFound } from 'next/navigation'
 import React, { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeftIcon } from 'lucide-react'
+import { ReviewForm } from '@/components/product/ReviewForm'
 import { Metadata } from 'next'
 
 type Args = {
@@ -142,6 +143,7 @@ export default async function ProductPage({ params }: Args) {
         </div>
 
         {product.isDigital && <DigitalProductAssets productId={product.id} />}
+        <ProductReviews productId={product.id} />
       </div>
 
       {product.layout?.length ? <RenderBlocks blocks={product.layout} /> : <></>}
@@ -181,10 +183,22 @@ async function DigitalProductAssets({ productId }: { productId: string | number 
           {assets.map((asset: any) => (
             <div key={asset.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/30">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="flex-shrink-0 w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
+                <div className={`flex-shrink-0 w-8 h-8 rounded flex items-center justify-center ${
+                  (asset.mimeType || '').startsWith('image/') ? 'bg-green-100 text-green-600' :
+                  (asset.mimeType || '').includes('pdf') ? 'bg-red-100 text-red-600' :
+                  (asset.mimeType || '').includes('zip') || (asset.mimeType || '').includes('rar') ? 'bg-yellow-100 text-yellow-600' :
+                  (asset.mimeType || '').includes('video') ? 'bg-purple-100 text-purple-600' :
+                  'bg-blue-100 text-blue-600'
+                }`}>
+                  {(asset.mimeType || '').startsWith('image/') ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  ) : (asset.mimeType || '').includes('pdf') ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                  ) : (asset.mimeType || '').includes('zip') || (asset.mimeType || '').includes('rar') ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{asset.filename}</p>
@@ -232,6 +246,70 @@ function RelatedProducts({ products }: { products: Product[] }) {
       </ul>
     </div>
   )
+}
+
+async function ProductReviews({ productId }: { productId: string | number }) {
+  const payload = await getPayload({ config: configPromise })
+
+  try {
+    const result = await payload.find({
+      collection: 'reviews',
+      where: {
+        and: [
+          { product: { equals: String(productId) } },
+          { isApproved: { equals: true } },
+        ],
+      },
+      sort: '-createdAt',
+      limit: 20,
+      overrideAccess: false,
+    })
+
+    const reviews = result.docs || []
+    const avgRating = reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + (r.rating as number || 0), 0) / reviews.length).toFixed(1)
+      : null
+
+    return (
+      <div className="mt-12 border-t pt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Reviews</h2>
+            {avgRating && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {avgRating} ★ ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Review Form */}
+        <ReviewForm productId={productId} />
+
+        {/* Review List */}
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-4">No reviews yet. Be the first!</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((review: any) => (
+              <div key={review.id} className="border-b pb-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-yellow-500">{'★'.repeat(review.rating || 5)}</span>
+                  <span className="font-medium text-sm">{review.title}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{review.content}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {review.author} · {new Date(review.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  } catch {
+    return null
+  }
 }
 
 const queryProductBySlug = async ({ slug }: { slug: string }) => {
