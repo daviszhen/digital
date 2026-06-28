@@ -156,16 +156,57 @@ export const CheckoutPage: React.FC = () => {
         )}
 
         {!paymentData && (
-          <Button
-            className="self-start"
-            disabled={!canGoToPayment}
-            onClick={(e) => {
-              e.preventDefault()
-              void initiatePaymentIntent('stripe')
-            }}
-          >
-            Go to payment
-          </Button>
+          <div className="flex flex-col gap-4">
+            <Button
+              className="self-start"
+              disabled={!canGoToPayment}
+              onClick={(e) => {
+                e.preventDefault()
+                void initiatePaymentIntent('stripe')
+              }}
+            >
+              Pay with Card
+            </Button>
+
+            <Button
+              variant="outline"
+              className="self-start"
+              disabled={!canGoToPayment || isProcessingPayment}
+              onClick={async (e) => {
+                e.preventDefault()
+                setProcessingPayment(true)
+                try {
+                  const body: any = {
+                    items: cart.items!.map((item: any) => ({
+                      product: typeof item.product === 'object' ? item.product.id : item.product,
+                      quantity: item.quantity || 1,
+                      variant: item.variant ? (typeof item.variant === 'object' ? item.variant.id : item.variant) : undefined,
+                    })),
+                    status: 'completed',
+                    customerEmail: email || user?.email,
+                  }
+                  const res = await fetch('/api/orders', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                  })
+                  const data = await res.json()
+                  if (data.doc?.id) {
+                    toast.success('Order placed!')
+                    router.push(`/orders/${data.doc.id}?email=${encodeURIComponent(email || user?.email || '')}`)
+                  } else {
+                    toast.error('Failed to create order')
+                  }
+                } catch (err: any) {
+                  toast.error(err.message)
+                } finally {
+                  setProcessingPayment(false)
+                }
+              }}
+            >
+              {isProcessingPayment ? 'Placing order...' : 'Place Order (Skip Payment)'}
+            </Button>
+          </div>
         )}
 
         {!paymentData?.['clientSecret'] && error && (
