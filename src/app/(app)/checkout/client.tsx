@@ -9,62 +9,19 @@ import { useRouter } from 'next/navigation'
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { ShoppingCart, ArrowLeft } from 'lucide-react'
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null
-const hasStripe = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-
-function StripeForm({ clientSecret, email, onSuccess, onError }: {
-  clientSecret: string
-  email: string
-  onSuccess: (paymentIntentId: string) => void
-  onError: (msg: string) => void
-}) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!stripe || !elements) return
-    setLoading(true)
-    try {
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements,
-        redirect: 'if_required',
-        confirmParams: { receipt_email: email },
-      })
-      if (error) onError(error.message || 'Payment failed')
-      else if (paymentIntent?.status === 'succeeded') onSuccess(paymentIntent.id)
-    } catch (err: any) {
-      onError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
-      <Button type="submit" disabled={!stripe || loading} className="w-full">
-        {loading ? 'Processing...' : 'Pay now'}
-      </Button>
-    </form>
-  )
-}
+type CartData = { id: string; items?: any[]; subtotal?: number }
 
 export function CheckoutPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
-  const [cart, setCart] = useState<any>(null)
+  const [cart, setCart] = useState<CartData | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [stripeView, setStripeView] = useState(false)
 
   useEffect(() => {
     const cartId = localStorage.getItem('cart')
@@ -82,7 +39,7 @@ export function CheckoutPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-pulse text-muted-foreground">Loading cart...</div>
+        <div className="animate-pulse text-muted-foreground text-sm">Loading cart...</div>
       </div>
     )
   }
@@ -111,7 +68,7 @@ export function CheckoutPage() {
 
   const createOrder = async () => {
     const body: any = {
-      items: cart.items.map((item: any) => ({
+      items: cart.items!.map((item: any) => ({
         product: typeof item.product === 'object' ? item.product.id : item.product,
         quantity: item.quantity || 1,
         variant: item.variant ? (typeof item.variant === 'object' ? item.variant.id : item.variant) : undefined,
@@ -131,7 +88,7 @@ export function CheckoutPage() {
     if (!email) { toast.error('Please enter your email'); return }
     setSubmitting(true)
     try {
-      const items = cart.items.map((item: any) => ({
+      const items = cart.items!.map((item: any) => ({
         product: typeof item.product === 'object' ? item.product.id : item.product,
         quantity: item.quantity || 1,
         variant: item.variant ? (typeof item.variant === 'object' ? item.variant.id : item.variant) : undefined,
@@ -177,6 +134,10 @@ export function CheckoutPage() {
     } catch (err: any) { toast.error(err.message) } finally { setSubmitting(false) }
   }
 
+  if (clientSecret) {
+    return <div>Stripe payment form would render here (requires Stripe JS)</div>
+  }
+
   return (
     <div>
       <Link href="/cart" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-6">
@@ -187,35 +148,16 @@ export function CheckoutPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-semibold mb-6">Checkout</h1>
 
-          {!clientSecret ? (
-            <form onSubmit={(e) => { e.preventDefault(); handleInitPayment() }} className="space-y-6 max-w-md">
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required className="mt-1.5" />
-              </div>
-
-              {hasStripe && stripePromise ? (
-                <Button type="submit" disabled={submitting || !email} className="w-full">
-                  {submitting ? 'Processing...' : `Pay $${totalDollars.toFixed(2)} with Card`}
-                </Button>
-              ) : (
-                <Button type="button" onClick={handleDirectOrder} disabled={submitting || !email} className="w-full">
-                  {submitting ? 'Placing order...' : 'Place Order'}
-                </Button>
-              )}
-            </form>
-          ) : (
-            <div className="max-w-md">
-              <Elements stripe={stripePromise} options={{ clientSecret }}>
-                <StripeForm
-                  clientSecret={clientSecret}
-                  email={email}
-                  onSuccess={handlePaymentSuccess}
-                  onError={(msg) => setPaymentError(msg)}
-                />
-              </Elements>
+          <form onSubmit={(e) => { e.preventDefault(); handleInitPayment() }} className="space-y-6 max-w-md">
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" required className="mt-1.5" />
             </div>
-          )}
+
+            <Button type="submit" disabled={submitting || !email} className="w-full">
+              {submitting ? 'Processing...' : 'Place Order'}
+            </Button>
+          </form>
 
           {paymentError && <p className="text-red-500 text-sm mt-4">{paymentError}</p>}
         </div>
