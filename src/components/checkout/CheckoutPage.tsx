@@ -185,6 +185,7 @@ export const CheckoutPage: React.FC = () => {
                     status: 'completed',
                     currency: 'USD',
                     customerEmail: email || user?.email,
+                    ...(user ? { customer: user.id } : {}),
                   }
                   const res = await fetch('/api/orders', {
                     method: 'POST', credentials: 'include',

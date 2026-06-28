@@ -100,8 +100,16 @@ export default async function Order({ params, searchParams }: PageProps) {
       (typeof orderResult.customer === 'object'
         ? orderResult.customer.id
         : orderResult.customer) === user.id
+    // fallback: logged-in user can access their own order via accessToken+email
+    const canAccessAsUserByToken =
+      user &&
+      email &&
+      accessToken &&
+      orderResult &&
+      orderResult.customerEmail &&
+      orderResult.customerEmail === email
 
-    if (orderResult && (canAccessAsGuest || canAccessAsUser)) {
+    if (orderResult && (canAccessAsGuest || canAccessAsUser || canAccessAsUserByToken)) {
       order = orderResult
     }
   } catch (error) {
