@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
-import { SimpleCheckoutPage } from '@/components/checkout/SimpleCheckout'
+import { CheckoutPage } from './client'
 
 export const metadata: Metadata = {
   title: 'Checkout',
@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function CheckoutPageWrapper() {
   return (
-    <div className="container py-8">
-      <SimpleCheckoutPage />
+    <div className="container py-8 min-h-[60vh]">
+      <CheckoutPage />
     </div>
   )
 }
