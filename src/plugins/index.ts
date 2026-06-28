@@ -102,6 +102,10 @@ export const plugins: Plugin[] = [
     orders: {
       ordersCollectionOverride: ({ defaultCollection }) => ({
         ...defaultCollection,
+        access: {
+          ...defaultCollection.access,
+          create: () => true,
+        },
         hooks: {
           ...defaultCollection.hooks,
           afterChange: [
