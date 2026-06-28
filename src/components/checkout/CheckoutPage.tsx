@@ -183,6 +183,7 @@ export const CheckoutPage: React.FC = () => {
                       variant: item.variant ? (typeof item.variant === 'object' ? item.variant.id : item.variant) : undefined,
                     })),
                     status: 'completed',
+                    currency: 'USD',
                     customerEmail: email || user?.email,
                   }
                   const res = await fetch('/api/orders', {
@@ -193,12 +194,12 @@ export const CheckoutPage: React.FC = () => {
                   const data = await res.json()
                   if (data.doc?.id) {
                     toast.success('Order placed!')
-                    router.push(`/orders/${data.doc.id}?email=${encodeURIComponent(email || user?.email || '')}`)
+                    router.push(`/orders/${data.doc.id}?email=${encodeURIComponent(email || user?.email || '')}&accessToken=${data.doc.accessToken || ''}`)
                   } else {
-                    toast.error('Failed to create order')
+                    toast.error(data.errors?.[0]?.message || data.message || 'Failed to create order')
                   }
                 } catch (err: any) {
-                  toast.error(err.message)
+                  toast.error(err.message || 'Network error')
                 } finally {
                   setProcessingPayment(false)
                 }
