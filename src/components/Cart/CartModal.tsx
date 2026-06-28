@@ -26,11 +26,13 @@ export function CartModal() {
   const fetchCart = () => {
     const cartId = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
     if (!cartId) { setCart(null); return }
-    fetch(`/api/carts/${cartId}?depth=2`, { credentials: 'include' })
+    const secret = typeof window !== 'undefined' ? localStorage.getItem(`${STORAGE_KEY}_secret`) : null
+    const secretParam = secret ? `?secret=${encodeURIComponent(secret)}` : ''
+    fetch(`/api/carts/${cartId}${secretParam}&depth=2`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         if (data.id) setCart(data)
-        else { localStorage.removeItem(STORAGE_KEY); setCart(null) }
+        else { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(`${STORAGE_KEY}_secret`); setCart(null) }
       })
       .catch(() => setCart(null))
   }

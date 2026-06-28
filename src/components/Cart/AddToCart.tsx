@@ -74,7 +74,9 @@ export function AddToCart({ product }: Props) {
         cartId = data.doc?.id
         if (cartId && typeof window !== 'undefined') {
           localStorage.setItem(CART_KEY, cartId)
-          localStorage.removeItem(`${CART_KEY}_secret`)
+          if (data.doc?.secret) {
+            localStorage.setItem(`${CART_KEY}_secret`, data.doc.secret)
+          }
         }
       }
 

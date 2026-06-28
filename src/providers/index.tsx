@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/providers/Auth'
+import { AuthCartSync } from '@/providers/Auth/CartSync'
 import { EcommerceProvider } from '@payloadcms/plugin-ecommerce/client/react'
 import { stripeAdapterClient } from '@payloadcms/plugin-ecommerce/payments/stripe'
 import React from 'react'
@@ -14,42 +15,43 @@ export const Providers: React.FC<{
 }> = ({ children }) => {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <HeaderThemeProvider>
-          <SonnerProvider />
-          <EcommerceProvider
-            enableVariants={true}
-            api={{
-              cartsFetchQuery: {
-                depth: 2,
-                populate: {
-                  products: {
-                    slug: true,
-                    title: true,
-                    gallery: true,
-                    inventory: true,
-                  },
-                  variants: {
-                    title: true,
-                    inventory: true,
-                  },
-                },
+      <EcommerceProvider
+        enableVariants={true}
+        api={{
+          cartsFetchQuery: {
+            depth: 2,
+            populate: {
+              products: {
+                slug: true,
+                title: true,
+                gallery: true,
+                inventory: true,
               },
-            }}
-            paymentMethods={
-              hasStripe
-                ? [
-                    stripeAdapterClient({
-                      publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-                    }),
-                  ]
-                : []
-            }
-          >
+              variants: {
+                title: true,
+                inventory: true,
+              },
+            },
+          },
+        }}
+        paymentMethods={
+          hasStripe
+            ? [
+                stripeAdapterClient({
+                  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+                }),
+              ]
+            : []
+        }
+      >
+        <AuthProvider>
+          <AuthCartSync />
+          <HeaderThemeProvider>
+            <SonnerProvider />
             {children}
-          </EcommerceProvider>
-        </HeaderThemeProvider>
-      </AuthProvider>
+          </HeaderThemeProvider>
+        </AuthProvider>
+      </EcommerceProvider>
     </ThemeProvider>
   )
 }
