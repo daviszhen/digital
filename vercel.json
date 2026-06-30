@@ -1,0 +1,4 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm payload migrate && sed -i '/\"type\": \"module\"/d' package.json && pnpm build"
+}

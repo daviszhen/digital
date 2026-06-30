@@ -1,4 +1,5 @@
 'use client'
+import { getClientSideURL } from '@/utilities/getURL'
 
 import { cn } from '@/utilities/cn'
 import React, { useEffect, useRef } from 'react'
@@ -35,7 +36,7 @@ export const Video: React.FC<MediaProps> = (props) => {
         playsInline
         ref={videoRef}
       >
-        <source src={`${process.env.NEXT_PUBLIC_SERVER_URL}/media/${filename}`} />
+        <source src={`${getClientSideURL()}/media/${filename}`} />
       </video>
     )
   }

@@ -1,4 +1,5 @@
 'use client'
+import { getClientSideURL } from '@/utilities/getURL'
 
 import type { PayloadAdminBarProps } from '@payloadcms/admin-bar'
 
@@ -57,7 +58,7 @@ export const AdminBar: React.FC<{
             logo: 'text-white',
             user: 'text-white',
           }}
-          cmsURL={process.env.NEXT_PUBLIC_SERVER_URL}
+          cmsURL={getClientSideURL()}
           collectionLabels={{
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore - todo fix, not sure why this is erroring

@@ -43,4 +43,5 @@ public/media
 
 certs/
 .env
-.env.docker
+.env.docker.open-next
+.wrangler
